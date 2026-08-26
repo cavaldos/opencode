@@ -2,7 +2,8 @@
   "plugin": [
     "opencode-wakatime",
     "opencode-notify",
-    "opencode-websearch-cited"
+    "opencode-websearch-cited",
+    "opencode-agents-sidebar@latest"
   ],
   "model": "",
   "autoupdate": true,
@@ -39,7 +40,6 @@
       "type": "local",
       "command": [
         "env",
-        "NPM_CONFIG_CACHE=/Users/YOUR_USER/.npm-opencode-cache",
         "npx",
         "-y",
         "@upstash/context7-mcp",
@@ -85,7 +85,6 @@
       "type": "local",
       "command": [
         "env",
-        "NPM_CONFIG_CACHE=/Users/YOUR_USER/.npm-opencode-cache",
         "npx",
         "-y",
         "shadcn@latest",
