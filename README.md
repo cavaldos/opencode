@@ -36,3 +36,24 @@ npm install
 
 - Never commit `opencode.json` and `.env` (already gitignored) — share only via the two `*.example` files.
 - To enable/disable an MCP server: edit `"enabled"` in `opencode.json`.
+- You can replace tailwind conffig
+
+```json
+    "tailwindcss": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "tailwindcss-mcp-server"
+      ],
+      "enabled": true
+    },
+```
+
+````json
+    "tailwindcss": {
+      "type": "local",
+     "command": ["/usr/bin/tailwindcss-server"],
+      "enabled": true
+    },
+````
