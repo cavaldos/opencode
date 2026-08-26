@@ -1,4 +1,8 @@
 {
   "$schema": "./schemas/tui.schema.json",
-  "plugin": ["./plugins/tool-tracker.tsx", "./plugins/model-recent.tsx"]
+  "plugin": [
+    "./plugins/tool-tracker.tsx",
+    "./plugins/model-recent.tsx",
+    "opencode-agents-sidebar@latest"
+  ]
 }
