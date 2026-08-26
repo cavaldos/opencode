@@ -140,7 +140,10 @@ export const CopilotAuthPlugin: Plugin = async ({ client: sdk }) => {
 				return {
 					baseURL,
 					apiKey: "",
-					async fetch(input, init) {
+					async fetch(
+						input: Parameters<typeof fetch>[0],
+						init?: Parameters<typeof fetch>[1],
+					) {
 						const info = await getAuth();
 						if (info.type !== "oauth") return fetch(input, init);
 

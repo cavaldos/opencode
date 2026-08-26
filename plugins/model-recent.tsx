@@ -192,8 +192,6 @@ const configModelOf = (api: TuiPluginApi): Ref | undefined => {
 type ModelDisplay = {
   /** Human model name, e.g. "Ox Alpha Free (Unlimited)". */
   name?: string
-  /** Zero input+output cost → the picker shows a "Free" tag. */
-  free?: boolean
 }
 
 const describeModel = (api: TuiPluginApi, ref: Ref): ModelDisplay => {
@@ -203,12 +201,8 @@ const describeModel = (api: TuiPluginApi, ref: Ref): ModelDisplay => {
     const raw: unknown = provider.models[ref.modelID]
     if (!isRecord(raw)) return {}
     const name = asString(raw.name)
-    const cost = isRecord(raw.cost) ? raw.cost : undefined
-    const input = typeof cost?.input === "number" ? cost.input : 0
-    const output = typeof cost?.output === "number" ? cost.output : 0
     return {
       ...(name ? { name } : {}),
-      free: input + output === 0 ? true : undefined,
     }
   } catch {
     return {}
@@ -227,7 +221,6 @@ type Skin = {
   muted: string
   success: string
   text: string
-  warning: string
 }
 
 const ink = (tokens: UnknownRecord, name: string, fallback: string): string => {
@@ -242,7 +235,6 @@ const look = (theme: unknown): Skin => {
     muted: ink(tokens, "textMuted", "#a5a5a5"),
     accent: ink(tokens, "primary", "#5f87ff"),
     success: ink(tokens, "success", "#4ec9b0"),
-    warning: ink(tokens, "warning", "#d7ba7d"),
   }
 }
 
@@ -327,7 +319,6 @@ const createFavoritesSection = (
                   <text fg={isCurrent ? skin.success : skin.text}>
                     {clampText(primaryLabelOf(ref, display), cfg.labelMax)}
                   </text>
-                  {display.free ? <text fg={skin.warning}>Free</text> : null}
                 </box>
               )
             })

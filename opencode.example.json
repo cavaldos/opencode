@@ -1,7 +1,5 @@
 {
   "plugin": [
-    "opencode-wakatime",
-    "opencode-notify",
     "opencode-websearch-cited",
     "opencode-agents-sidebar@latest"
   ],

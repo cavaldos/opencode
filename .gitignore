@@ -13,4 +13,5 @@ skill-usage.json
 *.log
 # real-configs
 opencode.json
+opencode.jsonc
 /.trash

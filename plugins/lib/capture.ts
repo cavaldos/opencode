@@ -111,10 +111,7 @@ export function captureMessageMeta(props: MessageEvent): boolean {
 				`INSERT OR IGNORE INTO temporal_messages
 				 (session_id, message_id, role, content, token_estimate, time_created)
 				 VALUES (?, ?, ?, '', 0, ?)`,
-				info.sessionID,
-				info.id,
-				role,
-				now,
+				[info.sessionID, info.id, role, now],
 			);
 		}
 		return true;
@@ -146,9 +143,7 @@ function upsertMessageContent(
 		`UPDATE temporal_messages
 		 SET content = ?, token_estimate = ?
 		 WHERE message_id = ?`,
-		text,
-		tokenEstimate,
-		messageId,
+		[text, tokenEstimate, messageId],
 	);
 
 	if (result.changes === 0) {
@@ -166,12 +161,14 @@ function upsertMessageContent(
 			`INSERT OR IGNORE INTO temporal_messages
 			 (session_id, message_id, role, content, token_estimate, time_created)
 			 VALUES (?, ?, ?, ?, ?, ?)`,
-			input.session_id,
-			input.message_id,
-			input.role,
-			input.content,
-			input.token_estimate,
-			input.time_created,
+			[
+				input.session_id,
+				input.message_id,
+				input.role,
+				input.content,
+				input.token_estimate,
+				input.time_created,
+			],
 		);
 	}
 }
