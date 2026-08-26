@@ -1,0 +1,13 @@
+{
+  "name": "opencode-custom-plugins",
+  "version": "1.0.0",
+  "description": "Dependencias locales para plugins de OpenCode",
+  "dependencies": {
+    "@opencode-ai/plugin": "1.18.23"
+  },
+  "devDependencies": {
+    "@opentui/solid": "^0.5.8",
+    "@types/node": "^26.3.0",
+    "solid-js": "^1.9.15"
+  }
+}

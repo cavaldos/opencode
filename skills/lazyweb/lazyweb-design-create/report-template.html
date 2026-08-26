@@ -1,0 +1,296 @@
+<!doctype html>
+<!--
+  Lazyweb design-research report v3 — CANONICAL TEMPLATE (living demo).
+  Copy this file to $REPORT_DIR/report.html and REPLACE the example content.
+  Do NOT hand-write the skeleton, CSS, or JS — they are render-tested.
+  Open this file in a browser to see the full shape and interactivity.
+
+  Conventions:
+  - Example content marks itself two ways: a data-ex attribute on the element
+    and/or picsum.photos image URLs. REPLACE every example value with real run
+    data and DELETE every data-ex attribute as you go. The publish gate BLOCKS
+    any report still containing data-ex, picsum.photos, placehold.co, EXAMPLE-,
+    or a {{PLACEHOLDER}}.
+  - <!~ REPEAT ... ~> comments mark blocks to duplicate per item.
+  - <!~ OPTIONAL ... ~> / <!~ VARIANT ... ~> blocks are kept, swapped, or
+    deleted as their comment says. Remove the ~ comments from the final report.
+  - ESCAPE every interpolated string: in HTML attributes/captions escape
+    " < > as &quot; &lt; &gt;. In the _vars JS literals escape ' and \.
+  - Delete the Inspo section entirely if fewer than 8 comparable references.
+  - The .corpus banner ships commented out — enable only for thin/mismatched
+    corpora (<8 selected references).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Research: Acme Analytics Pricing Page</title> <!--~ data-ex: replace with real topic ~-->
+<style>
+:root{--ink:#1f2328;--mut:#57606a;--line:#d0d7de;--soft:#eef4fb;--accent:#0969da;--s:1}
+html[data-scale="s"]{--s:.78}html[data-scale="l"]{--s:1.25}
+body{margin:0;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:#fff}
+main{max-width:min(1480px,95vw);margin:0 auto;padding:32px clamp(16px,3vw,40px) 56px}
+h1,h2,h3,p{letter-spacing:0}h1{font-size:34px;line-height:1.1;margin:0 0 24px}h2{font-size:24px;margin:40px 0 14px}h3{font-size:16px;margin:14px 0 6px}
+.goal p{font-size:20px;max-width:820px;margin:0}
+.agent-instructions{background:var(--soft);border-left:4px solid var(--accent);border-radius:8px;padding:14px 16px;margin:18px 0}
+.ai-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
+.ai-badge{font-size:11px;font-weight:700;letter-spacing:.04em;color:#0a3b78}
+.ai-copy{font-weight:600;font-size:12px;line-height:1;cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:#fff;border-radius:6px;padding:5px 11px}.ai-copy:hover{background:var(--accent);color:#fff}
+.ai-human{margin:0 0 10px;font-size:15px}
+.ai-block{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px 13px;margin:0;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;user-select:all}
+.corpus{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:#8a5a00;background:#fff8e6;border:1px solid #f0e0b0;border-radius:8px;padding:9px 12px;margin:14px 0}.corpus b{color:var(--ink)}
+/* recommendation intro + section title */
+.rec-intro{max-width:980px;margin:0 0 16px;font-size:16px;line-height:1.55;color:var(--mut)}
+.rec-intro b{color:var(--ink)}
+.why-h{font-size:19px;margin:28px 0 4px}
+/* side-by-side compare — equal height-locked frames + variant switcher */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;max-width:calc(1400px*var(--s))}
+.cmp{margin:0;min-width:0}
+.cmp figcaption{margin:0 0 8px;min-height:28px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);display:flex;gap:8px;align-items:center;justify-content:space-between}
+.cmp.is-recommended figcaption{color:var(--accent)}
+.vnav{display:none;gap:4px}
+.has-js .vnav{display:inline-flex}
+.vnav button{cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;width:30px;height:24px;font-size:11px;line-height:1}
+.vnav button:hover{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+.cmp-frame{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fafbfc;aspect-ratio:16/10}
+.cmp-frame img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;cursor:zoom-in}
+.compare.tall .cmp-frame{aspect-ratio:16/15}
+.compare.mobileset .cmp-frame{aspect-ratio:auto;height:calc(560px*var(--s));display:flex;align-items:center;justify-content:center;background:#0d1117}
+.compare.mobileset .cmp-frame img{width:auto;height:92%;object-fit:contain;border-radius:14px}
+/* options carousel */
+.deckwrap{margin:18px 0 8px}
+.option-deck{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 2px 12px;scrollbar-width:thin}
+.option-deck>article{flex:0 0 calc(min(640px,84vw)*var(--s));scroll-snap-align:start;margin:0;border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;display:flex;flex-direction:column;gap:10px;min-width:0}
+.option-deck>article.is-recommended{border-color:var(--accent)}
+.option-deck h3{margin:0;font-size:17px;display:flex;align-items:center;gap:8px}
+.rec-flag{font-weight:700;font-size:10.5px;line-height:1;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);background:var(--soft);border:1px solid #b6d4f7;border-radius:20px;padding:5px 10px;white-space:nowrap}
+.opt-points{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:13.5px;color:var(--mut);line-height:1.5}
+.opt-points b{color:var(--ink)}
+.prototype-img{cursor:zoom-in}
+.proto-full{margin:0}.proto-full img{display:block;width:100%;height:auto;max-height:calc(560px*var(--s));object-fit:contain;object-position:top;border:1px solid var(--line);border-radius:8px;background:#fafbfc;cursor:zoom-in}
+.build-prompt{font-size:13px;color:var(--mut)}.build-prompt summary{cursor:pointer;font-weight:700;color:var(--ink)}
+/* mini evidence deck (also reused for any multi-reference proof) */
+.deck{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 8px;scrollbar-width:thin}
+.deck>figure{flex:0 0 46%;max-width:320px;scroll-snap-align:center;margin:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.deck.mini>figure{flex-basis:44%;max-width:260px}
+.deck>figure>img{display:block;width:100%;height:auto;max-height:calc(420px*var(--s));object-fit:contain;background:#fafbfc}
+.deck>figure.shot-web>img{aspect-ratio:16/10;height:auto;max-height:none;object-fit:cover;object-position:top}
+.deck>figure.img-missing>img{display:none}
+.deck>figure.img-missing figcaption::after{content:' — image unavailable; see description';color:#cf222e}
+.deck .cap{font-size:12px;color:var(--mut);padding:7px 9px;line-height:1.4}.deck .cap b{color:var(--ink)}
+.deck .src{font-size:10.5px;font-weight:700;letter-spacing:.03em;color:var(--accent)}
+.deck-nav{display:none;gap:6px;justify-content:flex-end;margin-top:2px}
+.has-js .deck-nav{display:flex}
+.deck-nav button{cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;width:34px;height:28px;font-size:13px;line-height:1}
+.deck-nav button:hover{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+/* clustered inspo map — set --map-h inline per population (520px for 8-10 points ... 760px for 14-16) */
+.inspo-map{position:relative;min-height:calc(var(--map-h,640px)*var(--s));border:1px solid var(--line);border-radius:10px;background:linear-gradient(var(--line),var(--line)) 50% 0/1px 100% no-repeat,linear-gradient(90deg,var(--line),var(--line)) 0 50%/100% 1px no-repeat,#fff}
+.inspo-map::before{content:var(--y-top);position:absolute;top:10px;left:50%;transform:translateX(-50%);color:var(--mut);font-size:12px;font-weight:700;z-index:10;background:rgba(255,255,255,.88);padding:2px 7px;border-radius:6px}
+.inspo-map::after{content:var(--y-bottom);position:absolute;bottom:10px;left:50%;transform:translateX(-50%);color:var(--mut);font-size:12px;font-weight:700;z-index:10;background:rgba(255,255,255,.88);padding:2px 7px;border-radius:6px}
+.inspo-axes{position:absolute;inset:0;pointer-events:none;z-index:10}
+.inspo-axes::before{content:var(--x-left);position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:12px;font-weight:700;background:rgba(255,255,255,.88);padding:2px 7px;border-radius:6px}
+.inspo-axes::after{content:var(--x-right);position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:12px;font-weight:700;background:rgba(255,255,255,.88);padding:2px 7px;border-radius:6px}
+.cluster-label{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);font-weight:700;font-size:11px;line-height:1;color:var(--mut);background:rgba(255,255,255,.88);border:1px dashed var(--line);border-radius:14px;padding:5px 11px;pointer-events:none;z-index:5;white-space:nowrap}
+.inspo-point{position:absolute;left:clamp(calc(100px*var(--s)),var(--x),calc(100% - 100px*var(--s)));top:clamp(calc(70px*var(--s)),var(--y),calc(100% - 70px*var(--s)));transform:translate(-50%,-50%);width:calc(200px*var(--s));padding:0;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:zoom-in;overflow:hidden;transition:width .15s ease,left .15s ease;box-shadow:0 1px 4px rgba(31,35,40,.08)}
+.inspo-point:hover,.inspo-point:focus-visible{z-index:20;width:min(calc(520px*var(--s)),46vw);left:clamp(min(calc(260px*var(--s)),23vw),var(--x),calc(100% - min(260px*var(--s),23vw)));box-shadow:0 8px 30px rgba(31,35,40,.22);outline:2px solid var(--accent);outline-offset:2px}
+.inspo-img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;object-position:var(--pos,top center);background:#fafbfc}
+.inspo-point:hover .inspo-img,.inspo-point:focus-visible .inspo-img{aspect-ratio:16/11}
+.inspo-point.mob .inspo-img{aspect-ratio:9/16;object-fit:cover;object-position:top center}
+.inspo-point.mob:hover,.inspo-point.mob:focus-visible{width:min(calc(340px*var(--s)),30vw)}
+.inspo-point.mob:hover .inspo-img,.inspo-point.mob:focus-visible .inspo-img{aspect-ratio:auto;max-height:min(72vh,calc((var(--map-h,640px) - 40px)*var(--s)));object-fit:contain}
+/* shared furniture: mock-frame (no-imagegen fallback) + control/variant flip (experiment evidence) */
+.mock{margin:14px 0}.mock .frame{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}.mock.mobile .frame{max-width:300px;border-radius:26px;border:8px solid #1f2328}.mock.desktop .frame{max-width:760px}
+.mock .body{padding:14px;display:flex;flex-direction:column;gap:10px}.mock .box{background:var(--soft);border:1px dashed #b9c7d6;border-radius:8px;min-height:34px;display:flex;align-items:center;justify-content:center;color:#4a5a6a;font-size:12px;padding:8px}.mock .box.cta{background:var(--accent);border:0;color:#fff;font-weight:600}.mock .row{display:flex;gap:10px}.mock .row>.box{flex:1}.mock .cap{font-size:12px;color:var(--mut);margin-top:6px;text-align:center}
+.flip{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-bottom:8px}
+@media(max-width:560px){.flip{grid-template-columns:1fr}}
+.flip>figure{margin:0}
+.flip>figure>img{width:100%;height:auto;max-height:580px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fafbfc}
+.flip figcaption{font-weight:600;font-size:12px;line-height:1.4;margin-top:5px}
+.flip .side{display:inline-block;font-weight:700;font-size:10px;line-height:1;letter-spacing:.04em;border-radius:5px;padding:3px 7px;margin-right:6px}
+.flip .side.c{color:#6e7781;background:#f6f8fa}
+.flip .side.v{color:#0a5d2a;background:#e6f4ea}
+.flip .vd{display:block;font-weight:400;color:var(--mut);font-size:11.5px;margin-top:3px}
+.flip figure.img-missing>img{display:none}
+.flip figure.img-missing figcaption::after{content:' — image unavailable; see description';color:#cf222e;font-weight:400}
+/* scalebar + lightbox */
+.scalebar{display:none;position:fixed;right:16px;bottom:16px;z-index:40;gap:4px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px;box-shadow:0 4px 14px rgba(31,35,40,.14)}
+.has-js .scalebar{display:flex}
+.scalebar button{font-weight:700;font-size:11px;line-height:1;font-family:inherit;border:1px solid transparent;background:none;color:var(--mut);border-radius:5px;padding:7px 10px;cursor:pointer}
+.scalebar button[aria-pressed="true"]{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+#lb{display:none;position:fixed;inset:0;z-index:50;background:rgba(13,17,23,.86);align-items:center;justify-content:center;padding:28px}
+#lb.open{display:flex}
+#lb img{max-width:96vw;max-height:92vh;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.55);background:#161b22}
+#lb .x{position:absolute;top:18px;right:22px;color:#fff;font-weight:700;font-size:26px;line-height:1;font-family:inherit;cursor:pointer;background:none;border:0}
+.lw-foot{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);text-align:center;font-size:13px;color:var(--mut)}
+@media(max-width:880px){.compare{grid-template-columns:1fr}.compare.mobileset .cmp-frame{height:calc(480px*var(--s))}.option-deck>article{flex-basis:88vw}.inspo-map{min-height:calc(480px*var(--s))}.inspo-point{width:calc(150px*var(--s))}.inspo-point:hover,.inspo-point:focus-visible{width:min(86vw,calc(420px*var(--s)));left:clamp(min(43vw,calc(210px*var(--s))),var(--x),calc(100% - min(43vw,calc(210px*var(--s)))))}}
+</style>
+</head>
+<body>
+<main>
+<h1 data-ex="topic">Design Research: Acme Analytics — Pricing Page</h1>
+
+<section id="agent-instructions" class="agent-instructions">
+  <div class="ai-head"><span class="ai-badge">FOR THE CODING AGENT</span>
+    <button class="ai-copy" type="button" onclick="
+      var sec=this.closest('.agent-instructions'); var txt=sec.querySelector('.ai-block').innerText;
+      var done=function(ok){this.textContent=ok?'Copied':'Press Cmd/Ctrl+C';setTimeout(function(){this.textContent='Copy';}.bind(this),1500);}.bind(this);
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){done(true);},function(){done(false);});}
+      else{var r=document.createRange();r.selectNodeContents(sec.querySelector('.ai-block'));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand('copy');done(true);}catch(e){done(false);}}">Copy</button>
+  </div>
+  <p class="ai-human" data-ex="human-sentence">Build the Live Trust Dashboard first: replace the marketing band on /pricing with live uptime, compliance artifacts, and an engineer-led demo CTA.</p>
+  <pre class="ai-block" data-ex="handoff">LAZYWEB REPORT — AGENT HANDOFF
+Use the report at /abs/path/to/report.html as a starting point for redesigning the Acme pricing page to lift enterprise demo requests.
+
+TOP RECOMMENDATIONS (do first):
+1. Replace the hero marketing band with a live trust dashboard (uptime, SOC 2, incident history).
+2. Print the SLA number and a price anchor inside the Enterprise plan column.
+3. Offer a self-serve procurement data room behind one email field.
+
+INDEX ON: zero verifiable evidence on the control; compliance buried below the fold
+DO NOT OVER-INDEX ON: single-source off-category live-ticker reference; no measured lift in corpus
+DIVE FURTHER: lazyweb_search_ab_tests MCP tool — validate the trust-dashboard bet against pricing experiments
+
+Evidence basis: 14 Lazyweb references + 2 web captures · 2026-06-11</pre>
+</section>
+
+<!--~ OPTIONAL: enable only when evidence is thin (<8 selected references) or context-mismatched.
+<div class="corpus"><span>&#9888;</span><p style="margin:0"><b>Evidence basis:</b> only 6 on-category references survived screening — treat prevalence claims as directional.</p></div>
+~-->
+
+<section id="goal" class="goal">
+  <h2>Goal</h2>
+  <p data-ex="goal">Get more enterprise buyers to book a demo from the pricing page.</p>
+</section>
+
+<section id="recommendation" class="recommendation">
+  <h2>Recommendation</h2>
+  <p class="rec-intro" data-ex="intro">Swap the hero marketing band for a live trust dashboard with an engineer-led demo CTA — <b>because enterprise buyers convert on demonstrated reliability, and the control offers zero verifiable evidence above the fold.</b></p>
+  <!--~ VARIANT: add class "tall" (16:15 frames) when the decisive evidence sits below a 16:10 fold;
+       add class "mobileset" for portrait/mobile screenshots; with NO control (greenfield),
+       delete the control figure and let the recommended figure span full width. ~-->
+  <div class="compare">
+    <figure class="cmp control">
+      <figcaption>Control</figcaption>
+      <div class="cmp-frame"><img data-ex="control" src="https://picsum.photos/seed/lw-control/1280/800" alt="Acme pricing page today: four plan cards, no trust signals above the fold" onclick="window.__zoom&&__zoom(this)"></div>
+    </figure>
+    <figure class="cmp is-recommended">
+      <figcaption><span id="vname">Recommended — Live Trust Dashboard</span>
+        <span class="vnav"><button type="button" aria-label="Previous variant" onclick="window.__vstep&&__vstep(-1)">&#9664;</button><button type="button" aria-label="Next variant" onclick="window.__vstep&&__vstep(1)">&#9654;</button></span>
+      </figcaption>
+      <div class="cmp-frame"><img id="vimg" data-ex="proto-1" src="https://picsum.photos/seed/lw-proto1/1280/800" alt="Prototype: slim plan rail over a full-width live uptime and compliance band" onclick="window.__zoom&&__zoom(this)"></div>
+    </figure>
+  </div>
+
+  <h3 class="why-h">The &ldquo;why&rdquo; behind the recommendations</h3>
+  <div class="deckwrap">
+    <div class="option-deck">
+      <!--~ REPEAT one <article> per bet, recommended first.
+           Only the recommended card gets class "is-recommended" and the .rec-flag pill.
+           What/Why bullets: 8-14 words each, no Proof or Skip-if bullets.
+           Prevalence/whitespace count goes in the FIRST deck figcaption. ~-->
+      <article class="prototype-option is-recommended" id="bet-1">
+        <h3 data-ex="bet-1">Live Trust Dashboard <span class="rec-flag">Recommended option</span></h3>
+        <figure class="proto-full"><img class="prototype-img" data-ex="proto-1-full" src="https://picsum.photos/seed/lw-proto1/1280/960" alt="Full prototype: live uptime band, compliance downloads, engineer demo CTA" loading="lazy" onclick="window.__zoom&&__zoom(this)"></figure>
+        <ul class="opt-points" data-ex="bet-1-points">
+          <li><b>What:</b> Live uptime + compliance dashboard replaces the marketing band.</li>
+          <li><b>Why:</b> Demonstrated reliability converts platform engineers; claims don't.</li>
+        </ul>
+        <div class="deck mini">
+          <figure class="shot-web"><img data-ex="ref-1" src="https://picsum.photos/seed/lw-ref1/960/600" alt="Userpilot case-study grid with quantified outcomes" loading="lazy" onerror="this.closest('figure').classList.add('img-missing')"><figcaption class="cap"><span class="src">[Lazyweb]</span> <b>Userpilot</b> — quantified-outcomes grid beside pricing. <b>0 of 14 pricing pages show live metrics — whitespace.</b></figcaption></figure>
+          <figure class="shot-web"><img data-ex="ref-2" src="https://picsum.photos/seed/lw-ref2/960/600" alt="Sequoia trust page with compliance badge row" loading="lazy" onerror="this.closest('figure').classList.add('img-missing')"><figcaption class="cap"><span class="src">[Lazyweb]</span> <b>Sequoia</b> — badge-led trust band above plan grid.</figcaption></figure>
+        </div>
+        <details class="build-prompt"><summary>Agent prompt</summary><p data-ex="bet-1-prompt">Hypothesis: replacing the hero marketing band with a live trust dashboard should lift enterprise demo requests because demonstrated reliability converts buyers that claims cannot. Evidence: whitespace — 0 of 14 in-category references render live metrics on pricing (directional, no measured lift); mechanism proof from quantified-outcome case-study pages. Skip if: status-page numbers are unflattering or too young to be credible. Build: slim plan rail at top; full-width dark band with 90-day uptime sparkline, incident strip, downloadable SOC 2/ISO artifacts, customer logos with workload stats; primary CTA "Book a demo with an infrastructure engineer".</p></details>
+      </article>
+      <article class="prototype-option" id="bet-2">
+        <h3 data-ex="bet-2">Procurement-Ready Plan Column</h3>
+        <figure class="proto-full"><img class="prototype-img" data-ex="proto-2-full" src="https://picsum.photos/seed/lw-proto2/1280/960" alt="Full prototype: enterprise column with SLA, price anchor, compliance badges" loading="lazy" onclick="window.__zoom&&__zoom(this)"></figure>
+        <ul class="opt-points" data-ex="bet-2-points">
+          <li><b>What:</b> SLA, price anchor, and badges printed inside the Enterprise column.</li>
+          <li><b>Why:</b> Removes every procurement blocker without leaving the plan grid.</li>
+        </ul>
+        <div class="deck mini">
+          <figure class="shot-web"><img data-ex="ref-3" src="https://picsum.photos/seed/lw-ref3/960/600" alt="Vercel enterprise column with printed SLA" loading="lazy" onerror="this.closest('figure').classList.add('img-missing')"><figcaption class="cap"><span class="src">[Lazyweb]</span> <b>Vercel</b> — 99.99% SLA printed in-column. <b>2 of 2 direct competitors do this; control doesn't.</b></figcaption></figure>
+          <figure class="shot-web"><img data-ex="ref-4" src="https://picsum.photos/seed/lw-ref4/960/600" alt="Netlify enterprise card leading with the SLA promise" loading="lazy" onerror="this.closest('figure').classList.add('img-missing')"><figcaption class="cap"><span class="src">[Lazyweb]</span> <b>Netlify</b> — Enterprise card led by support + SLA.</figcaption></figure>
+        </div>
+        <details class="build-prompt"><summary>Agent prompt</summary><p data-ex="bet-2-prompt">Hypothesis: printing the SLA number, a "$2k/mo starting" anchor, and compliance badges inside the Enterprise column should lift inquiries because procurement blockers are answered in place. Evidence: 2 of 2 captured direct competitors print the SLA in-column; 9 of 14 references run the column convention. Skip if: legal will not commit to a public SLA number. Build: keep the grid; rework the Enterprise column with SLA row, anchor price, badge strip, embedded scheduler under "Book a demo".</p></details>
+      </article>
+      <article class="prototype-option" id="bet-3">
+        <h3 data-ex="bet-3">Self-Serve Procurement Room</h3>
+        <figure class="proto-full"><img class="prototype-img" data-ex="proto-3-full" src="https://picsum.photos/seed/lw-proto3/1280/960" alt="Full prototype: one email field unlocking a procurement data room" loading="lazy" onclick="window.__zoom&&__zoom(this)"></figure>
+        <ul class="opt-points" data-ex="bet-3-points">
+          <li><b>What:</b> One email field unlocks a data room with SOC 2, DPA, sample invoice.</li>
+          <li><b>Why:</b> Procurement needs artifacts, not adjectives or sales calls.</li>
+        </ul>
+        <div class="deck mini">
+          <figure class="shot-web"><img data-ex="ref-5" src="https://picsum.photos/seed/lw-ref5/960/600" alt="Intercom instant demo environment" loading="lazy" onerror="this.closest('figure').classList.add('img-missing')"><figcaption class="cap"><span class="src">[Web]</span> <b>Intercom</b> — instant demo behind one field. <b>Single source, outside this category.</b></figcaption></figure>
+          <figure class="shot-web"><img data-ex="ref-6" src="https://picsum.photos/seed/lw-ref6/960/600" alt="Ramp three-path demo page" loading="lazy" onerror="this.closest('figure').classList.add('img-missing')"><figcaption class="cap"><span class="src">[Lazyweb]</span> <b>Ramp</b> — three demo paths by buyer readiness.</figcaption></figure>
+        </div>
+        <!--~ OPTIONAL: mini deck with 3+ figures gets this nav right after the .deck:
+        <div class="deck-nav">
+          <button type="button" aria-label="Previous" onclick="var d=this.closest('.deck-nav').previousElementSibling,f=d.querySelector('figure');d.scrollBy({left:-((f?f.offsetWidth:240)+12),behavior:'smooth'})">&#9664;</button>
+          <button type="button" aria-label="Next" onclick="var d=this.closest('.deck-nav').previousElementSibling,f=d.querySelector('figure');d.scrollBy({left:(f?f.offsetWidth:240)+12,behavior:'smooth'})">&#9654;</button>
+        </div> ~-->
+        <details class="build-prompt"><summary>Agent prompt</summary><p data-ex="bet-3-prompt">Hypothesis: replacing "Contact sales" with a self-serve data room (order form with price anchor, SOC 2 report, DPA, sample invoice, migration guide) behind one email field should produce more qualified leads because procurement evaluates artifacts. Evidence: mechanism-only — single source, outside this category; 0 of 14 publish procurement artifacts on pricing. Skip if: sales insists on qualifying every enterprise lead by phone first. Build: replace the Enterprise CTA with "Open the procurement room"; room lists downloadable artifacts plus an instant read-only sandbox link.</p></details>
+      </article>
+      <!--~ END REPEAT ~-->
+    </div>
+    <div class="deck-nav">
+      <button type="button" aria-label="Previous" onclick="var d=this.closest('.deckwrap').querySelector('.option-deck'),f=d.querySelector('article');d.scrollBy({left:-((f?f.offsetWidth:560)+16),behavior:'smooth'})">&#9664;</button>
+      <button type="button" aria-label="Next" onclick="var d=this.closest('.deckwrap').querySelector('.option-deck'),f=d.querySelector('article');d.scrollBy({left:(f?f.offsetWidth:560)+16,behavior:'smooth'})">&#9654;</button>
+    </div>
+  </div>
+</section>
+
+<!--~ OPTIONAL SECTION: delete entirely if fewer than 8 comparable references.
+     Set --map-h to the population (520px for 8-10 points ... 760px for 14-16).
+     Keep point anchors inside 12%-88% on both axes; portrait refs get class="inspo-point mob".
+     Aim for 10-16 points in 2-4 named clusters. ~-->
+<section id="inspo" class="inspo">
+  <h2>Inspo</h2>
+  <div class="inspo-map" data-ex="map" style="--map-h:640px;--x-left:'Form-first';--x-right:'Content-first';--y-top:'Numbers-led';--y-bottom:'Story-led'">
+    <span class="inspo-axes" aria-hidden="true"></span>
+    <span class="cluster-label" style="--x:24%;--y:24%">Minimal ask</span>
+    <span class="cluster-label" style="--x:70%;--y:28%">Numbers-first proof</span>
+    <span class="cluster-label" style="--x:62%;--y:74%">Preview the product</span>
+    <button class="inspo-point" type="button" style="--x:18%;--y:30%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m1/640/400" alt="Minimal pricing page, single plan card" loading="lazy"></button>
+    <button class="inspo-point" type="button" style="--x:30%;--y:20%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m2/640/400" alt="Two-plan grid with one CTA" loading="lazy"></button>
+    <button class="inspo-point" type="button" style="--x:26%;--y:44%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m3/640/400" alt="Single-column pricing with FAQ" loading="lazy"></button>
+    <button class="inspo-point" type="button" style="--x:62%;--y:18%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m4/640/400" alt="Metric-tile case study band" loading="lazy"></button>
+    <button class="inspo-point" type="button" style="--x:76%;--y:24%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m5/640/400" alt="ROI calculator beside plans" loading="lazy"></button>
+    <button class="inspo-point" type="button" style="--x:68%;--y:38%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m6/640/400" alt="Usage-based pricing slider" loading="lazy"></button>
+    <button class="inspo-point" type="button" style="--x:84%;--y:32%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m7/640/400" alt="Live KPI dashboard hero" loading="lazy"></button>
+    <button class="inspo-point" type="button" style="--x:42%;--y:62%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m8/640/400" alt="Customer-story pricing narrative" loading="lazy"></button>
+    <button class="inspo-point" type="button" style="--x:58%;--y:68%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m9/640/400" alt="Interactive product demo embedded" loading="lazy"></button>
+    <button class="inspo-point" type="button" style="--x:72%;--y:78%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m10/640/400" alt="Full sample issue as the page" loading="lazy"></button>
+    <button class="inspo-point" type="button" style="--x:34%;--y:78%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m11/640/400" alt="Founder-letter pricing rationale" loading="lazy"></button>
+    <button class="inspo-point mob" type="button" style="--x:14%;--y:64%" data-source="example" onclick="window.__zoom&&__zoom(this.querySelector('img'))"><img class="inspo-img" src="https://picsum.photos/seed/lw-m12/390/780" alt="Mobile paywall with single plan" loading="lazy"></button>
+  </div>
+</section>
+
+<footer class="lw-foot">Powered by <a href="https://www.lazyweb.com">Lazyweb</a> &mdash; agent-ready design research. MCP data access and usage limits depend on your plan.</footer>
+
+
+</main>
+
+<div id="lb" aria-hidden="true"><button type="button" class="x" aria-label="Close">×</button><img alt="Expanded image"></div>
+<div class="scalebar" role="group" aria-label="Report scale">
+  <button type="button" data-s="s">S</button><button type="button" data-s="" aria-pressed="true">M</button><button type="button" data-s="l">L</button>
+</div>
+<script>
+document.body.classList.add('has-js');
+var _lb=document.getElementById('lb'),_i=_lb&&_lb.querySelector('img');
+window.__zoom=function(g){if(!_lb)return false;_i.src=g.currentSrc||g.src;_lb.classList.add('open');_lb.setAttribute('aria-hidden','false');return false;};
+if(_lb)_lb.addEventListener('click',function(){_lb.classList.remove('open');_lb.setAttribute('aria-hidden','true');_i.removeAttribute('src');});
+/* One entry per bet, recommended first. ESCAPE apostrophes/backslashes in n and a. Example values below — replace all three. */
+var _vars=[
+  {n:'Recommended — Live Trust Dashboard',s:'https://picsum.photos/seed/lw-proto1/1280/800',a:'Prototype: live uptime and compliance band'},
+  {n:'Procurement-Ready Plan Column',s:'https://picsum.photos/seed/lw-proto2/1280/800',a:'Prototype: enterprise column with SLA and anchor'},
+  {n:'Self-Serve Procurement Room',s:'https://picsum.photos/seed/lw-proto3/1280/800',a:'Prototype: data room behind one email field'}
+],_vi=0;
+window.__vstep=function(d){_vi=(_vi+d+_vars.length)%_vars.length;var v=_vars[_vi],img=document.getElementById('vimg');img.src=v.s;img.alt=v.a;document.getElementById('vname').textContent=v.n;};
+document.querySelectorAll('.scalebar button').forEach(function(b){b.addEventListener('click',function(){
+  if(b.dataset.s)document.documentElement.setAttribute('data-scale',b.dataset.s);else document.documentElement.removeAttribute('data-scale');
+  document.querySelectorAll('.scalebar button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});});});
+</script>
+</body>
+</html>

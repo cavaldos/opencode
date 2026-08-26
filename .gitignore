@@ -1,0 +1,15 @@
+node_modules
+# package.json
+package-lock.json
+bun.lock
+yarn.lock
+pnpm-lock.yaml
+.env
+.env.*
+!.env.example
+skill-usage.json
+
+.DS_Store
+*.log
+# real-configs
+opencode.json
