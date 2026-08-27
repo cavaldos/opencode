@@ -5,6 +5,10 @@
  *   idle | thinking (reasoning streaming) | writing (text streaming)
  *   | working (tools/steps) | success (turn finished) | error
  *
+ * Busy statuses are TIMED per cycle: the live row shows elapsed seconds
+ * for the current status period ("Thinking... 7s"). Every transition
+ * restarts the count — returning to a status later starts from 0 again.
+ *
  * Sources of truth — verified against the actual event wire protocol
  * (opencode 1.18.x, captured via `opencode serve` + SSE /event):
  *
@@ -141,6 +145,13 @@ const colorOf = (status: PetStatus, skin: Skin): string => {
 const isBusy = (status: PetStatus): boolean =>
   status === "thinking" || status === "writing" || status === "working"
 
+/** Compact duration: `12s`, `2m05s`. */
+const formatMs = (ms: number): string => {
+  const total = Math.round(ms / 1000)
+  if (total < 60) return `${total}s`
+  return `${Math.floor(total / 60)}m${String(total % 60).padStart(2, "0")}s`
+}
+
 /** Map the host's session status (the TUI spinner signal) to a pet status. */
 const busyStatusOf = (status: SessionStatus | undefined): PetStatus => {
   if (status === undefined) return "idle"
@@ -152,6 +163,9 @@ const IDLE_DELAY_MS = 4_000
 const createPetSection = (api: TuiPluginApi): TuiSlotPlugin => {
   const [status, setStatus] = createSignal<PetStatus>("idle")
   const [tick, setTick] = createSignal(0)
+  /** Fast cadence for the live seconds counter — separate from the face
+   *  animation so counting up doesn't speed up the pet's mood. */
+  const [timerTick, setTimerTick] = createSignal(0)
   let idleTimer: ReturnType<typeof setTimeout> | undefined
   /** Session the pet is currently tracking (from the last slot render). */
   let selectedSessionId: string | undefined
@@ -160,6 +174,8 @@ const createPetSection = (api: TuiPluginApi): TuiSlotPlugin => {
   let inTurn = false
   /** partID → part.type, so `message.part.delta` can be classified. */
   const partTypes = new Map<string, string>()
+  /** When the current status period began (undefined while not busy). */
+  let statusSince: number | undefined
 
   const clearIdleTimer = (): void => {
     if (idleTimer === undefined) return
@@ -168,10 +184,15 @@ const createPetSection = (api: TuiPluginApi): TuiSlotPlugin => {
   }
 
   const updateStatus = (next: PetStatus): void => {
+    const prev = status()
+    if (next === prev) return // repeated deltas must not restart the timer
     clearIdleTimer()
+    // Each status period counts from zero — going thinking → working →
+    // thinking restarts the thinking counter instead of resuming it.
+    statusSince = isBusy(next) ? Date.now() : undefined
     setStatus(next)
     if (next === "success" || next === "error") {
-      idleTimer = setTimeout(() => setStatus("idle"), IDLE_DELAY_MS)
+      idleTimer = setTimeout(() => updateStatus("idle"), IDLE_DELAY_MS)
     }
   }
 
@@ -192,13 +213,29 @@ const createPetSection = (api: TuiPluginApi): TuiSlotPlugin => {
         next = "idle"
       }
       inTurn = isBusy(next)
+      statusSince = isBusy(next) ? Date.now() : undefined
       updateStatus(next)
     })
+  }
+
+  /** "Thinking... 7s" — live elapsed for the current status period. */
+  const statusLine = (): string => {
+    const current = status()
+    const label = messageOf(current)
+    if (!isBusy(current) || statusSince === undefined) return label
+    // Reactive dep: without this the expression runs once at the
+    // transition (elapsed ≈ 0) and the seconds freeze at "1s".
+    timerTick()
+    return `${label} ${formatMs(Date.now() - statusSince)}`
   }
 
   const animation = setInterval(() => {
     setTick((current) => current + 1)
   }, 1200)
+
+  const timerInterval = setInterval(() => {
+    setTimerTick((current) => current + 1)
+  }, 500)
 
   const disposers = [
     // Turn anchor — the authoritative busy/idle signal (TUI spinner source).
@@ -290,6 +327,7 @@ const createPetSection = (api: TuiPluginApi): TuiSlotPlugin => {
 
   api.lifecycle.onDispose(() => {
     clearInterval(animation)
+    clearInterval(timerInterval)
     clearIdleTimer()
     for (const dispose of disposers) dispose()
   })
@@ -323,7 +361,7 @@ const createPetSection = (api: TuiPluginApi): TuiSlotPlugin => {
           >
             <box flexDirection="row" gap={1}>
               <text fg={colorOf(status(), skin)}>{faceOf(status(), tick())}</text>
-              <text fg={skin.muted}>{messageOf(status())}</text>
+              <text fg={skin.muted}>{statusLine()}</text>
             </box>
           </box>
         )
