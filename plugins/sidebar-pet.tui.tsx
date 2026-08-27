@@ -1,4 +1,33 @@
+/**
+ * sidebar-pet — OpenCode TUI sidebar plugin.
+ *
+ * Tracks the status of the SELECTED session:
+ *   idle | thinking (reasoning streaming) | writing (text streaming)
+ *   | working (tools/steps) | success (turn finished) | error
+ *
+ * Sources of truth — verified against the actual event wire protocol
+ * (opencode 1.18.x, captured via `opencode serve` + SSE /event):
+ *
+ *   The server does NOT emit `session.next.*` events. What it emits:
+ *     - `session.status`  {sessionID, status: {type: busy|idle|retry}}
+ *       → authoritative turn anchor (the same signal the TUI spinner uses).
+ *     - `message.part.updated` {sessionID, part}
+ *       part.type: "step-start" | "reasoning" | "text" | "tool"
+ *                | "step-finish" (reason: "tool-calls" → more rounds,
+ *                                 "stop" → turn done)
+ *       A "reasoning" part is created with text:"" (thinking begins) and
+ *       updated later with the full text (thinking ended).
+ *     - `message.part.delta` {sessionID, partID, field, delta}
+ *       → live stream; classify via the partID → part.type map built from
+ *       message.part.updated ("reasoning" → thinking, "text" → writing).
+ *     - `session.idle` / `session.error` → terminal states.
+ *
+ *   User-prompt parts arrive BEFORE the first `session.status: busy`, so an
+ *   in-turn gate (busy…idle) keeps them from polluting the status.
+ */
+
 import { createSignal } from "solid-js"
+import type { SessionStatus } from "@opencode-ai/sdk/v2"
 import type {
   TuiPlugin,
   TuiPluginApi,
@@ -10,7 +39,7 @@ import type {
 const ID = "sidebar-pet"
 const ORDER = 0
 
-type PetStatus = "idle" | "thinking" | "working" | "success" | "error"
+type PetStatus = "idle" | "thinking" | "writing" | "working" | "success" | "error"
 type UnknownRecord = Record<string, unknown>
 
 const isRecord = (value: unknown): value is UnknownRecord =>
@@ -47,12 +76,27 @@ const look = (theme: unknown): Skin => {
   }
 }
 
+/**
+ * Each status owns a DISTINCT signature — rotation only adds subtle
+ * micro-motion (blinks, glances, mouth movement) and never borrows
+ * another status's look, so the face alone reads the state:
+ *
+ *   idle     calm smile, occasional squint + blink
+ *   thinking eyes up, flat mouth (pondering), one side-eye tick
+ *   writing  dot eyes on the page, chattering mouth (typing)
+ *   working  grinding open mouth, solid stare every few ticks
+ *   success  happy dog, one closed-eye grin tick
+ *   error   disapproval, then crying
+ *
+ * All faces are 3 glyphs wide so the row doesn't jitter while cycling.
+ */
 const petFaces: Record<PetStatus, readonly string[]> = {
-  idle: ["◉‿◉", "•ᴗ•", "ᵔᴥᵔ", "(•‿•)", "(¬‿¬)"],
-  thinking: ["◉_◉", "◉‿◉", "(¬‿¬)"],
-  working: ["◉▿◉", "•ᴗ•", "ᵔᴥᵔ", "(•‿•)"],
-  success: ["^‿^", "•ᴗ•", "(•‿•)", "ᵔᴥᵔ"],
-  error: ["ಠ_ಠ", "(╥﹏╥)", "◉_◉"],
+  idle: ["(◉‿◉)", "(˘‿˘)", "(◉‿◉)", "(-‿-)"],
+  thinking: ["(◔_◔)", "(◉_◔)", "(◔_◔)", "(¬_¬)", "(ᵕ_ᵕ)"],
+  writing: ["(•‿•)✎", "(•o•)⋆", "(•‿•)✎", "(•o•)⋆", "(•ᴗ•)✎", "(•ᴗ•)⋆", "(ᵔᴗᵔ)✎"],
+  working: ["(◉▿◉)⚙", "(◉▽◉)⋆", "(◉▿◉)⚙", "(●▿●)⋆", "(•ᴗ•)⚙", "(•_•)⋆", "(ᗒᴗᗕ)⚙", "(•̀ᴗ•́)⋆"],
+  success: ["(ᵔᴥᵔ)", "(ᵔᴥᵔ)", "(ᵔᴥᵔ)", "(^‿^)", "(ᵔᴗᵔ)♡", "(•ᴗ•)✦", "(^ᴗ^)", "(ᵔ‿ᵔ)"],
+  error: ["(ಠ_ಠ)", "()ಠ_ಠ)", "(T_T)", "(T_T)"],
 }
 
 const faceOf = (status: PetStatus, tick: number): string => {
@@ -64,6 +108,8 @@ const messageOf = (status: PetStatus): string => {
   switch (status) {
     case "thinking":
       return "Thinking..."
+    case "writing":
+      return "Writing..."
     case "working":
       return "Working..."
     case "success":
@@ -77,32 +123,28 @@ const messageOf = (status: PetStatus): string => {
 
 const colorOf = (status: PetStatus, skin: Skin): string => {
   switch (status) {
-    case "working":
     case "thinking":
       return skin.warning
+    case "working":
+    case "writing":
+      return skin.accent
     case "success":
       return skin.success
     case "error":
       return skin.error
     default:
-      return skin.accent
+      return skin.muted
   }
 }
 
-const statusFromToolPart = (part: UnknownRecord): PetStatus | undefined => {
-  const state = isRecord(part.state) ? part.state : {}
-  switch (asString(state.status)) {
-    case "pending":
-      return "thinking"
-    case "running":
-      return "working"
-    case "completed":
-      return "success"
-    case "error":
-      return "error"
-    default:
-      return undefined
-  }
+/** Busy pet states — terminal/anchor transitions behave differently. */
+const isBusy = (status: PetStatus): boolean =>
+  status === "thinking" || status === "writing" || status === "working"
+
+/** Map the host's session status (the TUI spinner signal) to a pet status. */
+const busyStatusOf = (status: SessionStatus | undefined): PetStatus => {
+  if (status === undefined) return "idle"
+  return status.type === "busy" || status.type === "retry" ? "working" : "idle"
 }
 
 const IDLE_DELAY_MS = 4_000
@@ -111,6 +153,13 @@ const createPetSection = (api: TuiPluginApi): TuiSlotPlugin => {
   const [status, setStatus] = createSignal<PetStatus>("idle")
   const [tick, setTick] = createSignal(0)
   let idleTimer: ReturnType<typeof setTimeout> | undefined
+  /** Session the pet is currently tracking (from the last slot render). */
+  let selectedSessionId: string | undefined
+  /** True between `session.status: busy` and its `idle` — gates part events
+   *  so the user's own prompt parts never pollute the status. */
+  let inTurn = false
+  /** partID → part.type, so `message.part.delta` can be classified. */
+  const partTypes = new Map<string, string>()
 
   const clearIdleTimer = (): void => {
     if (idleTimer === undefined) return
@@ -126,21 +175,117 @@ const createPetSection = (api: TuiPluginApi): TuiSlotPlugin => {
     }
   }
 
+  /** A fresh "Done!"/"Error" flash is allowed to decay naturally instead of
+   *  being cut short by the trailing idle event. */
+  const isFlashing = (): boolean => status() === "success" || status() === "error"
+
+  /** Re-sync from the host's synced session state — used on session switch
+   *  so a pet mounted mid-run shows busy immediately. Deferred to a
+   *  microtask because the slot render scope reads `status()`. */
+  const syncFromSessionState = (sessionId: string): void => {
+    queueMicrotask(() => {
+      if (sessionId !== selectedSessionId) return
+      let next: PetStatus = "idle"
+      try {
+        next = busyStatusOf(api.state.session.status(sessionId))
+      } catch {
+        next = "idle"
+      }
+      inTurn = isBusy(next)
+      updateStatus(next)
+    })
+  }
+
   const animation = setInterval(() => {
     setTick((current) => current + 1)
   }, 1200)
 
   const disposers = [
-    api.event.on("message.part.updated", (event) => {
-      const properties: unknown = event.properties
-      const part = isRecord(properties) ? properties.part : undefined
-      if (!isRecord(part) || part.type !== "tool") return
-      const next = statusFromToolPart(part)
-      if (next) updateStatus(next)
+    // Turn anchor — the authoritative busy/idle signal (TUI spinner source).
+    api.event.on("session.status", (event) => {
+      if (event.properties.sessionID !== selectedSessionId) return
+      const type = event.properties.status.type
+      inTurn = type !== "idle"
+      if (type === "idle") {
+        if (isFlashing()) return
+        updateStatus("idle")
+        return
+      }
+      // busy / retry — anchor as busy; refinement events follow. Re-issued
+      // busy events between steps must not override thinking/writing, and
+      // the trailing busy after `step-finish: stop` must not wipe the
+      // "Done!" flash (a genuine new turn re-anchors via its part events).
+      if (isFlashing() || isBusy(status())) return
+      updateStatus("working")
     }),
-    api.event.on("message.updated", () => updateStatus("thinking")),
-    api.event.on("session.updated", () => updateStatus("success")),
-    api.event.on("session.error", () => updateStatus("error")),
+    api.event.on("session.idle", (event) => {
+      if (event.properties.sessionID !== selectedSessionId) return
+      inTurn = false
+      if (isFlashing()) return
+      updateStatus("idle")
+    }),
+
+    // Part lifecycle — tells us WHAT the busy session is doing.
+    api.event.on("message.part.updated", (event) => {
+      if (event.properties.sessionID !== selectedSessionId) return
+      const part: unknown = event.properties.part
+      if (!isRecord(part)) return
+      const partId = asString(part.id)
+      const partType = asString(part.type)
+      if (partId && partType) partTypes.set(partId, partType)
+      if (!inTurn) return // user prompt parts arrive before busy
+
+      switch (partType) {
+        case "step-start":
+          updateStatus("working")
+          break
+        case "reasoning":
+          // Created with text:"" → thinking begins; the full-text update
+          // that closes the block arrives after the tool call starts.
+          updateStatus(asString(part.text) ? "working" : "thinking")
+          break
+        case "text":
+          // Assistant text block created → the model is writing its answer.
+          updateStatus("writing")
+          break
+        case "tool": {
+          // pending/running → tools executing; completed/error → the turn
+          // continues (the model reacts to the result), so stay busy.
+          const state = isRecord(part.state) ? part.state : {}
+          const toolStatus = asString(state.status) ?? "pending"
+          if (toolStatus === "pending" || toolStatus === "running") {
+            updateStatus("working")
+          } else if (!isBusy(status())) {
+            updateStatus("working")
+          }
+          break
+        }
+        case "step-finish": {
+          // "stop" → the model is done for good; any other reason
+          // ("tool-calls", ...) means more rounds are coming.
+          if (asString(part.reason) === "stop") updateStatus("success")
+          break
+        }
+        default:
+          break
+      }
+    }),
+
+    // Live stream — classify deltas via the partID → type map.
+    api.event.on("message.part.delta", (event) => {
+      if (event.properties.sessionID !== selectedSessionId) return
+      if (!inTurn) return
+      const kind = partTypes.get(event.properties.partID)
+      if (kind === "reasoning") updateStatus("thinking")
+      else if (kind === "text") updateStatus("writing")
+    }),
+
+    api.event.on("session.error", (event) => {
+      const sessionID = event.properties.sessionID
+      if (sessionID !== undefined && sessionID !== selectedSessionId) return
+      inTurn = false
+      updateStatus("error")
+    }),
   ]
 
   api.lifecycle.onDispose(() => {
@@ -157,6 +302,11 @@ const createPetSection = (api: TuiPluginApi): TuiSlotPlugin => {
         const sessionId = asString(isRecord(value) ? value.session_id : undefined)
 
         if (!sessionId) return <box />
+
+        if (sessionId !== selectedSessionId) {
+          selectedSessionId = sessionId
+          syncFromSessionState(sessionId)
+        }
 
         return (
           <box
