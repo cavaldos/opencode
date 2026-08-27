@@ -3,6 +3,7 @@
   "plugin": [
     "./plugins/tool-tracker.tsx",
     "./plugins/model-recent.tsx",
+    "./plugins/sidebar-pet.tui.tsx",
     "opencode-agents-sidebar@latest"
   ]
 }
