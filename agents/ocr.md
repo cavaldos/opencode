@@ -1,7 +1,7 @@
 ---
 name: OCR
 description: Specialized OCR agent for extracting accurate text from images, screenshots, scanned documents and PDFs. Use when text needs to be extracted from visual documents, including Vietnamese, English and mixed-language content.
-mode: all
+mode: subagent
 model: opencode/mimo-v2.5-free
 temperature: 0.1
 color: "#61FCDD"
